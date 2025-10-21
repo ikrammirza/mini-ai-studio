@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: Modelia Mini AI Studio API
+  version: "1.0.0"
+  description: API for user authentication and AI image generation simulation.
+
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Signup'
+      responses:
+        "200":
+          description: User successfully created and JWT token returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "400":
+          description: Invalid input (e.g., missing email/password)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Log in an existing user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Signup' # Reusing Signup schema for login
+      responses:
+        "200":
+          description: Successful login, returns JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        "401":
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /generations:
+    get:
+      tags:
+        - Generations
+      summary: Get list of previous image generations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 5
+          description: Maximum number of generations to return.
+      responses:
+        "200":
+          description: Successfully retrieved generations list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Generation'
+        "401":
+          description: Unauthorized (missing or invalid token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Generations
+      summary: Request a new image generation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GenerationRequest'
+      responses:
+        "201":
+          description: Generation request accepted and successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Generation'
+        "503":
+          description: Model overloaded (simulation error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Signup:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: securepassword123
+      required:
+        - email
+        - password
+        
+    AuthToken:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      required:
+        - token
+
+    GenerationRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+          example: 'A futuristic cat wearing a spacesuit on Mars'
+        style:
+          type: string
+          example: 'Cyberpunk'
+        imageUpload:
+          type: string
+          format: binary
+          description: The initial image for the generation (multipart file)
+      required:
+        - prompt
+        - style
+        - imageUpload
+        
+    Generation:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        prompt:
+          type: string
+        style:
+          type: string
+        imageUrl:
+          type: string
+          format: url
+        status:
+          type: string
+          enum: [succeeded, failed, pending]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - prompt
+        - style
+        - imageUrl
+        - status
+        - createdAt
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Model overloaded"
