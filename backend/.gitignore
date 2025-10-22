@@ -1,5 +1,60 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# === Node / npm ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-/generated/prisma
+# === Build outputs ===
+dist/
+build/
+.cache/
+out/
+.temp/
+coverage/
+
+# === Logs ===
+*.log
+logs/
+debug.log
+*.pid
+*.seed
+*.pid.lock
+
+# === Environment files ===
+.env
+.env.local
+.env.*.local
+
+# === OS / Editor ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# === TypeScript ===
+*.tsbuildinfo
+
+# === Frontend (Vite / React / Next) ===
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+frontend/.vercel/
+
+# === Backend ===
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/coverage/
+backend/test-results/
+backend/*.sqlite
+backend/*.db
+
+# === Playwright / Vitest ===
+test-results/
+playwright-report/
+coverage/
+
+# === Docker / Misc ===
+docker-compose.override.yml
+*.local.yml
