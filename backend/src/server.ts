@@ -1,18 +1,20 @@
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import path from 'path';
 import prisma from './prismaClient';
 import authRoutes from './routes/auth';
 import generationsRoutes from './routes/generations';
 import { AuthRequest } from './types/auth';
 import { PredictionServiceClient } from '@google-cloud/aiplatform';
-
+import 'dotenv/config';
 const app = express();
 const PORT = process.env.PORT || 4000;
+console.log("GOOGLE_APPLICATION_CREDENTIALS =", process.env.GOOGLE_APPLICATION_CREDENTIALS);
 
-// ✅ Middlewares — must be placed BEFORE routes
+// Middlewares
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
 }));
@@ -20,7 +22,7 @@ app.use(cors({
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-// ✅ Prisma connection
+// Prisma
 prisma.$connect()
     .then(() => console.log('Prisma client connected successfully.'))
     .catch((error: unknown) => {
@@ -28,25 +30,22 @@ prisma.$connect()
         process.exit(1);
     });
 
-// ✅ Authentication mock middleware
+// Mock Auth Middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith('/api/auth')) return next();
-
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7);
         (req as AuthRequest).user = { id: 1, email: 'mockuser@example.com' };
     }
     next();
 });
 
-// ✅ Health check route
-app.get('/api/health', (req: Request, res: Response) => {
-    res.status(200).json({ status: 'ok', message: 'Backend is running' });
-});
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/generations', generationsRoutes);
 
-// ✅ Image Generation Route (IMPORTANT)
-app.post('/api/generate-image', async (req, res) => {
+// Image generation route
+app.post('/api/generate-image', async (req: Request, res: Response) => {
     try {
         const { prompt, style } = req.body;
         if (!prompt) return res.status(400).json({ error: "Prompt is required" });
@@ -58,12 +57,15 @@ app.post('/api/generate-image', async (req, res) => {
         const location = 'us-central1';
         const model = `projects/${project}/locations/${location}/publishers/google/models/gemini-2.5-flash-image`;
 
+        // ✅ Correctly destructure the response
         const [response] = await aiClient.predict({
             endpoint: `${model}:predict`,
-            instances: [{ prompt: fullPrompt }],
+            instances: [{ prompt: fullPrompt } as any],
         });
 
-        const base64Data = response?.predictions?.[0]?.content?.[0]?.image_base64;
+        // Now response is IPredictResponse
+        const base64Data = (response as any).predictions?.[0]?.content?.[0]?.image_base64;
+
         if (!base64Data) throw new Error("No image data returned from API");
 
         res.json({ imageUrl: `data:image/png;base64,${base64Data}` });
@@ -73,20 +75,20 @@ app.post('/api/generate-image', async (req, res) => {
     }
 });
 
-// ✅ Mount other routes
-app.use('/api/auth', authRoutes);
-app.use('/api/generations', generationsRoutes);
 
-// ✅ Global Error Handler
+// Serve React build (production)
+const buildPath = path.join(__dirname, '../frontend/dist');
+app.use(express.static(buildPath));
+
+// For SPA routing: always return index.html for unmatched routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+});
+
+// Global Error Handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.error('Global error handler caught:', err.stack);
-    res.status(500).json({
-        message: 'Something went wrong on the server.',
-        error: err.message
-    });
+    res.status(500).json({ message: 'Something went wrong', error: err.message });
 });
 
-// ✅ Start server
-app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
