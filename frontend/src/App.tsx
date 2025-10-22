@@ -36,9 +36,9 @@ const App: React.FC = () => {
   ];
 
   const clearMessages = (): void => setMessage('');
-
+  const API_BASE = import.meta.env.VITE_API_URL || '';
   // --- Generate Image ---
-const handleGenerate = async (e: FormEvent) => {
+  const handleGenerate = async (e: FormEvent) => {
   e.preventDefault();
   if (!prompt.trim()) {
     setMessage('Please enter a prompt.');
@@ -50,11 +50,9 @@ const handleGenerate = async (e: FormEvent) => {
   setGeneratedImage(null);
 
   try {
-    const response = await fetch('/api/generate-image', {
+    const response = await fetch(`${API_BASE}/api/generate-image`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt, style }),
     });
 
@@ -88,7 +86,6 @@ const handleGenerate = async (e: FormEvent) => {
     setIsLoading(false);
   }
 };
-
   // --- Components ---
   const GenerationForm: React.FC = () => (
     <div className="p-6 bg-white rounded-xl shadow-2xl space-y-6 max-w-xl w-full">
