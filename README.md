@@ -2,7 +2,6 @@
 
 Mini AI Studio is a full-stack web application simulating a fashion image generation experience. Users can securely log in, upload images, add text prompts, and generate AI-style results with a fully interactive frontend and backend.
 
-This project was created as a **Full Stack Engineer coding assignment** for Modelia.
 
 ---
 
