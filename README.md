@@ -2,7 +2,6 @@
 
 Mini AI Studio is a full-stack web application simulating a fashion image generation experience. Users can securely log in, upload images, add text prompts, and generate AI-style results with a fully interactive frontend and backend.
 
-
 ---
 
 ## 🎯 Objective
@@ -71,23 +70,24 @@ Build a complete web app (frontend, backend, database) focusing on:
 
 mini-ai-studio/
 ├── backend/
-│ ├── src/
-│ │ ├── controllers/
-│ │ ├── routes/
-│ │ ├── models/
-│ │ └── services/
-│ └── tests/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── routes/
+│   │   ├── models/
+│   │   └── services/
+│   └── tests/
 ├── frontend/
-│ ├── src/
-│ │ ├── components/
-│ │ ├── hooks/
-│ │ └── pages/
-│ └── tests/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── pages/
+│   └── tests/
 ├── .github/workflows/ci.yml
 ├── AI_USAGE.md
 ├── EVAL.md
 ├── OPENAPI.yaml
 └── README.md
+
 
 
 ---
@@ -109,8 +109,12 @@ mini-ai-studio/
 ```bash
 git clone https://github.com/ikrammirza/mini-ai-studio.git
 cd mini-ai-studio
+# Backend
 cd backend
 npm install
+cp .env.example .env
+
+# Frontend
 cd ../frontend
 npm install
 cp .env.example .env
@@ -118,27 +122,32 @@ cp .env.example .env
 Running the Application
 
 With Docker (recommended)
+cd project_root
 docker-compose up --build
 
 Without Docker
-Backend: cd backend
-npm start
+# Run backend
+cd backend
+npm start  # Runs on http://localhost:4000
 
-cd frontend
-npm start
+# Run frontend
+cd ../frontend
+npm start  # Runs on http://localhost:5173
 
 
 📄 API Documentation
 
-See OPENAPI.yaml for full backend specification:
+See OPENAPI.yaml for full backend specification.
 
-/auth/signup → user registration
+POST /auth/signup → user registration
 
-/auth/login → user login
+POST /auth/login → user login
 
-/generations → create generation
+POST /generations → create generation
 
-/generations?limit=5 → fetch last 5 generations
+GET /generations?limit=5 → fetch last 5 generations
+
+Note: All generation routes require Authorization: Bearer <token> header.
 
 
 
@@ -148,13 +157,13 @@ Backend: Jest + Supertest
 Frontend: React Testing Library
 E2E: Cypress / Playwright
 
-Run all tests:# Backend tests
-cd backend
-npm test
+Run all tests:
+# Backend tests
+cd backend && npm test
 
 # Frontend tests
-cd ../frontend
-npm test
+cd ../frontend && npm test
+
 
 Coverage report is generated and uploaded via GitHub Actions CI.
 
