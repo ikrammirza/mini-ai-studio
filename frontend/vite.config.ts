@@ -12,4 +12,9 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    globals: true,           // so you can use test(), expect(), vi() globally
+    environment: 'jsdom',    // ✅ needed for React Testing Library
+    setupFiles: './tests/setup.ts', // optional, for jest-dom matchers
+  },
 });

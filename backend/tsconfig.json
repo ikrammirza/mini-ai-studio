@@ -1,19 +1,18 @@
 {
   "compilerOptions": {
-    /* Language and Module Options */
+    "baseUrl": ".",              // required for path aliases
+    "paths": {
+      "@controllers/*": ["src/controllers/*"]
+    },
     "target": "es2020",
     "module": "commonjs",
-    "rootDir": "./src", 
-    "outDir": "./dist", /* Output directory for compiled JavaScript */
-    
-    /* Strictness and Interop */
+    "rootDir": "./src",
+    "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "strictPropertyInitialization": false /* Allows initializing properties in the constructor */
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts"], /* Only compile files in the 'src' folder */
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }
